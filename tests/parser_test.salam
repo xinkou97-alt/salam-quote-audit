@@ -1,0 +1,17 @@
+package main
+
+include parser "../src/quote_parser.salam"
+
+func main:
+    good := parser.Parse("code\tdescription\tquantity\tunit_price\tclaimed_total\r\nA1\tConcrete\t1.005\t29.00\t29.15\r\n")
+    if good.items.len() != 1 or good.findings.len() != 0: ret 1 end
+    if good.items.get(0).quantity != 1005: ret 2 end
+    bad := parser.Parse("bad\n")
+    if bad.findings.len() != 1: ret 3 end
+    empty := parser.Parse("code\tdescription\tquantity\tunit_price\tclaimed_total\n\n")
+    if empty.findings.len() != 1: ret 4 end
+    invalid := parser.Parse("code\tdescription\tquantity\tunit_price\tclaimed_total\nA\tWork\t-1\t3\t3\nB\tWork\t1\t1.999\t2\n")
+    if invalid.findings.len() != 2 or invalid.items.len() != 0: ret 5 end
+    println "parser: 5 checks passed"
+    ret 0
+end

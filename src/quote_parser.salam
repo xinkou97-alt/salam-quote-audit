@@ -1,0 +1,58 @@
+package quote_parser
+
+include table "table.salam"
+include model "model.salam"
+include money "money.salam"
+include quantity "quantity.salam"
+
+func finding(line: int, kind: str, detail: str): model.Finding:
+    ret model.Finding { line = line, kind = kind, detail = detail }
+end
+
+pub func Parse(text: str): model.Quote:
+    mut quote := model.Quote {}
+    lines := table.Split(text, "\n")
+    defer lines.free()
+    if lines.len() == 0 or table.StripCr(lines.get(0)) != "code\tdescription\tquantity\tunit_price\tclaimed_total":
+        quote.findings.push(finding(1, "header", "expected five-column TSV header"))
+        ret quote
+    end
+    if lines.len() > 10002:
+        quote.findings.push(finding(1, "limit", "at most 10000 data rows are allowed"))
+        ret quote
+    end
+    repeat lines.len() - 1 in offset:
+        number := offset + 2
+        row := table.StripCr(lines.get(offset + 1))
+        if row.len() == 0 and offset == lines.len() - 2: continue end
+        cells := table.Split(row, "\t")
+        defer cells.free()
+        if cells.len() != 5:
+            quote.findings.push(finding(number, "columns", "expected exactly five fields"))
+            continue
+        end
+        code := cells.get(0).trim()
+        description := cells.get(1).trim()
+        if code.len() == 0 or code.len() > 80 or description.len() == 0 or description.len() > 512:
+            quote.findings.push(finding(number, "identity", "code or description is empty or too long"))
+            continue
+        end
+        qty := quantity.Parse(cells.get(2))
+        price := money.ParsePrice(cells.get(3))
+        claimed := money.ParseTotal(cells.get(4))
+        if not qty.ok:
+            quote.findings.push(finding(number, "quantity", qty.error))
+            continue
+        end
+        if not price.ok:
+            quote.findings.push(finding(number, "unit_price", price.error))
+            continue
+        end
+        if not claimed.ok:
+            quote.findings.push(finding(number, "claimed_total", claimed.error))
+            continue
+        end
+        quote.items.push(model.Item { line = number, code = code, description = description, quantity = qty.value, unit_price = price.value, claimed = claimed.value })
+    end
+    ret quote
+end

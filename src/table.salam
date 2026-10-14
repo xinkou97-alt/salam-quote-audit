@@ -1,0 +1,19 @@
+package table
+
+pub func Split(s: str, delimiter: str): Vector<str>:
+    out := Vector {} as Vector<str>
+    mut start := 0
+    repeat s.len() in i:
+        if s.substr(i, 1) == delimiter:
+            out.push(s.substr(start, i - start))
+            start = i + 1
+        end
+    end
+    out.push(s.substr(start, s.len() - start))
+    ret out
+end
+
+pub func StripCr(s: str): str:
+    if s.ends_with("\r"): ret s.substr(0, s.len() - 1) end
+    ret s
+end
