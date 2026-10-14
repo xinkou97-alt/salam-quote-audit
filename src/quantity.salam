@@ -1,0 +1,21 @@
+package quantity
+
+import conv
+include decimal "decimal.salam"
+
+pub func Parse(s: str): decimal.Parsed:
+    mut result := decimal.Parse(s, 3, 1000000000)
+    if result.ok and result.value == 0:
+        result.ok = false
+        result.error = "quantity must be positive"
+    end
+    ret result
+end
+
+pub func Format(thousandths: i64): str:
+    fraction := thousandths % 1000
+    mut tail := conv.FormatInt(fraction)
+    if fraction < 100: tail = "0".concat(tail) end
+    if fraction < 10: tail = "0".concat(tail) end
+    ret conv.FormatInt(thousandths / 1000).concat(".").concat(tail)
+end

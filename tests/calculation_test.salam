@@ -1,0 +1,18 @@
+package main
+
+include quantity "../src/quantity.salam"
+include calculation "../src/calculation.salam"
+
+func main:
+    if quantity.Parse("0").ok: ret 1 end
+    if quantity.Parse("1.0001").ok: ret 2 end
+    if quantity.Parse("1000000.001").ok: ret 3 end
+    if quantity.Parse("0.001").value != 1: ret 4 end
+    if quantity.Format(1005) != "1.005": ret 5 end
+    if calculation.LineTotal(500, 1) != 1: ret 6 end
+    if calculation.LineTotal(499, 1) != 0: ret 7 end
+    if calculation.LineTotal(1005, 2900) != 2915: ret 8 end
+    if calculation.LineTotal(1000000000, 100000000) != 100000000000000: ret 9 end
+    println "calculation: 9 checks passed"
+    ret 0
+end

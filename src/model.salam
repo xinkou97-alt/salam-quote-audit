@@ -1,0 +1,21 @@
+package model
+
+pub struct Item:
+    pub line: int = 0
+    pub code: str = ""
+    pub description: str = ""
+    pub quantity: i64 = 0
+    pub unit_price: i64 = 0
+    pub claimed: i64 = 0
+end
+
+pub struct Finding:
+    pub line: int = 0
+    pub kind: str = ""
+    pub detail: str = ""
+end
+
+pub struct Quote:
+    pub items: Vector<Item> = Vector {} as Vector<Item>
+    pub findings: Vector<Finding> = Vector {} as Vector<Finding>
+end
