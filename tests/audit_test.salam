@@ -1,0 +1,18 @@
+package main
+
+include parser "../src/quote_parser.salam"
+include audit "../src/audit.salam"
+include report "../src/text_report.salam"
+
+func main:
+    quote := parser.Parse("code\tdescription\tquantity\tunit_price\tclaimed_total\nA\tWork\t2\t0.29\t0.58\nA\tWork\t0.5\t0.01\t0.00\n")
+    result := audit.Run(quote)
+    if result.valid_rows != 2: ret 1 end
+    if result.expected != 59 or result.claimed != 58: ret 2 end
+    if result.findings.len() != 2: ret 3 end
+    if result.findings.get(0).kind != "duplicate": ret 4 end
+    if result.findings.get(1).kind != "arithmetic": ret 5 end
+    if not report.Render(result).includes("Difference: -0.01"): ret 6 end
+    println "audit: 6 checks passed"
+    ret 0
+end

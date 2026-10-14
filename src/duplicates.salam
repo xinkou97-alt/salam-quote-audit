@@ -1,0 +1,18 @@
+package duplicates
+
+include model "model.salam"
+
+pub func Check(items: Vector<model.Item>): Vector<model.Finding>:
+    findings := Vector {} as Vector<model.Finding>
+    seen := HashMap {} as HashMap<str, int>
+    defer seen.free()
+    repeat items.len() in i:
+        item := items.get(i)
+        if seen.has(item.code):
+            findings.push(model.Finding { line = item.line, kind = "duplicate", detail = "item code is repeated (case-sensitive)" })
+        else:
+            seen.put(item.code, item.line)
+        end
+    end
+    ret findings
+end

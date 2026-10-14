@@ -1,0 +1,40 @@
+package audit
+
+include model "model.salam"
+include duplicates "duplicates.salam"
+include calculation "calculation.salam"
+include money "money.salam"
+
+pub struct Result:
+    pub valid_rows: int = 0
+    pub expected: i64 = 0
+    pub claimed: i64 = 0
+    pub findings: Vector<model.Finding> = Vector {} as Vector<model.Finding>
+end
+
+pub func Run(quote: model.Quote): Result:
+    mut result := Result {}
+    result.valid_rows = quote.items.len()
+    if quote.items.len() == 0 and quote.findings.len() == 0:
+        result.findings.push(model.Finding { line = 1, kind = "empty_quote", detail = "quote contains no data rows" })
+    end
+    repeat quote.findings.len() in i:
+        result.findings.push(quote.findings.get(i))
+    end
+    repeats := duplicates.Check(quote.items)
+    defer repeats.free()
+    repeat repeats.len() in i:
+        result.findings.push(repeats.get(i))
+    end
+    repeat quote.items.len() in i:
+        item := quote.items.get(i)
+        expected := calculation.LineTotal(item.quantity, item.unit_price)
+        result.expected += expected
+        result.claimed += item.claimed
+        if item.claimed != expected:
+            detail := "expected ".concat(money.Format(expected)).concat(", claimed ").concat(money.Format(item.claimed)).concat(", difference ").concat(money.Format(item.claimed - expected))
+            result.findings.push(model.Finding { line = item.line, kind = "arithmetic", detail = detail })
+        end
+    end
+    ret result
+end

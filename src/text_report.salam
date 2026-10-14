@@ -1,0 +1,17 @@
+package text_report
+
+import conv
+include audit "audit.salam"
+include money "money.salam"
+
+pub func Render(result: audit.Result): str:
+    mut report := "Quote Audit\nValid rows: ".concat(conv.FormatInt(result.valid_rows as i64)).concat("\nExpected total: ").concat(money.Format(result.expected)).concat("\nClaimed total: ").concat(money.Format(result.claimed)).concat("\nDifference: ").concat(money.Format(result.claimed - result.expected)).concat("\nFindings: ").concat(conv.FormatInt(result.findings.len() as i64)).concat("\n")
+    repeat result.findings.len() in i:
+        item := result.findings.get(i)
+        report = report.concat("line ").concat(conv.FormatInt(item.line as i64)).concat(" [").concat(item.kind).concat("] ").concat(item.detail).concat("\n")
+    end
+    if result.findings.len() > 0:
+        report = report.concat("Totals include only valid rows; duplicate valid rows are included.\n")
+    end
+    ret report
+end
