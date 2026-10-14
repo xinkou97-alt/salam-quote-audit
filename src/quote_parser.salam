@@ -17,7 +17,9 @@ pub func Parse(text: str): model.Quote:
         quote.findings.push(finding(1, "header", "expected five-column TSV header"))
         ret quote
     end
-    if lines.len() > 10002:
+    mut data_rows := lines.len() - 1
+    if lines.get(lines.len() - 1).len() == 0: data_rows -= 1 end
+    if data_rows > 10000:
         quote.findings.push(finding(1, "limit", "at most 10000 data rows are allowed"))
         ret quote
     end

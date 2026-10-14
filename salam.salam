@@ -1,0 +1,42 @@
+package main
+
+import os
+include reader "src/reader.salam"
+include parser "src/quote_parser.salam"
+include audit "src/audit.salam"
+include text_report "src/text_report.salam"
+include json_report "src/json_report.salam"
+
+func check_file(path: str, as_json: bool): int:
+    loaded := reader.Load(path)
+    if not loaded.ok:
+        printerrln loaded.error
+        ret 2
+    end
+    quote := parser.Parse(loaded.text)
+    result := audit.Run(quote)
+    if as_json:
+        println json_report.Render(result)
+    else:
+        print text_report.Render(result)
+    end
+    if result.findings.len() > 0: ret 1 end
+    ret 0
+end
+
+func main:
+    argv := os.Args()
+    if argv.len() == 2 and argv.get(1) == "--help":
+        println "Usage: quote-audit FILE.tsv [--json]"
+        println "Exit codes: 0 clean, 1 findings, 2 usage or input failure"
+        ret 0
+    end
+    if argv.len() == 2:
+        ret check_file(argv.get(1), false)
+    end
+    if argv.len() == 3 and argv.get(2) == "--json":
+        ret check_file(argv.get(1), true)
+    end
+    printerrln "Usage: quote-audit FILE.tsv [--json]"
+    ret 2
+end

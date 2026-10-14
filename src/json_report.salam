@@ -1,0 +1,21 @@
+package json_report
+
+import encoding.json
+include audit "audit.salam"
+include model "model.salam"
+include money "money.salam"
+
+struct Document:
+    pub schema_version: int = 1
+    pub valid_rows: int = 0
+    pub expected_total: str = ""
+    pub claimed_total: str = ""
+    pub difference: str = ""
+    pub findings: Vector<model.Finding> = Vector {} as Vector<model.Finding>
+    pub totals_scope: str = "valid rows, including duplicate codes"
+end
+
+pub func Render(result: audit.Result): str:
+    doc := Document { valid_rows = result.valid_rows, expected_total = money.Format(result.expected), claimed_total = money.Format(result.claimed), difference = money.Format(result.claimed - result.expected), findings = result.findings }
+    ret json.Marshal(doc)
+end

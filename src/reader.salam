@@ -1,0 +1,42 @@
+package reader
+
+import os
+import io
+
+pub struct Loaded:
+    pub ok: bool = false
+    pub text: str = ""
+    pub error: str = ""
+end
+
+pub func Load(path: str): Loaded:
+    mut result := Loaded {}
+    f := os.Open(path, "rb")
+    if f == null:
+        result.error = "cannot open input file"
+        ret result
+    end
+    defer io.Close(f)
+    size := os.FileSize(path)
+    if size < 0:
+        result.error = "cannot determine input size"
+        ret result
+    end
+    if size > 524288:
+        result.error = "input exceeds 512 KiB"
+        ret result
+    end
+    text := io.Read(f, 524289 as u64)
+    // Native Salam strings are NUL-terminated. A length mismatch catches
+    // embedded NUL bytes, short reads, and size-changing input files.
+    if (text.len() as i64) != size or os.FileSize(path) != size:
+        result.error = "short read, NUL byte, or input changed during reading"
+        ret result
+    end
+    result.ok = true
+    result.text = text
+    if text.starts_with("\xef\xbb\xbf"):
+        result.text = text.substr(3, text.len() - 3)
+    end
+    ret result
+end
