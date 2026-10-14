@@ -1,0 +1,42 @@
+name: Native Windows tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download and verify pinned Salam release
+        shell: pwsh
+        run: |
+          $asset = 'salam-0.5.3-windows-x86_64.zip'
+          $base = 'https://github.com/SalamLang/Salam/releases/download/v0.5.3'
+          Invoke-WebRequest "$base/$asset" -OutFile salam.zip
+          Invoke-WebRequest "$base/$asset.sha256" -OutFile salam.sha256
+          $expected = (Get-Content -Raw salam.sha256).Split(' ')[0].Trim()
+          if ((Get-FileHash salam.zip -Algorithm SHA256).Hash.ToLower() -ne $expected) { throw 'SHA256 mismatch' }
+          Expand-Archive salam.zip toolchain
+      - name: Build, unit tests, format and integration tests
+        shell: pwsh
+        run: |
+          $salam = (Resolve-Path toolchain/salam-windows/salam.exe).Path
+          $cc = (Resolve-Path toolchain/salam-windows/tcc/tcc.exe).Path
+          New-Item -ItemType Directory build -Force | Out-Null
+          & $salam format src tests salam.salam --check
+          if ($LASTEXITCODE -ne 0) { throw 'format failed' }
+          & $salam build salam.salam "--cc=$cc" --output=build/quote-audit.exe --log-level=error
+          if ($LASTEXITCODE -ne 0) { throw 'build failed' }
+          foreach ($name in @('money', 'calculation', 'parser', 'audit')) {
+            & $salam build "tests/${name}_test.salam" "--cc=$cc" "--output=build/${name}_test.exe" --log-level=error
+            if ($LASTEXITCODE -ne 0) { throw "unit build failed: $name" }
+            & "./build/${name}_test.exe"
+            if ($LASTEXITCODE -ne 0) { throw "unit failed: $name" }
+          }
+          python -m unittest discover -s tests -p 'test_*.py' -v
+          if ($LASTEXITCODE -ne 0) { throw 'integration failed' }

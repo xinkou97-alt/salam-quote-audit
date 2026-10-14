@@ -1,6 +1,7 @@
 package json_report
 
 import encoding.json
+
 include audit "audit.salam"
 include model "model.salam"
 include money "money.salam"

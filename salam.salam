@@ -1,6 +1,7 @@
 package main
 
 import os
+
 include reader "src/reader.salam"
 include parser "src/quote_parser.salam"
 include audit "src/audit.salam"

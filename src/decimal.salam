@@ -36,7 +36,9 @@ pub func Parse(raw: str, places: int, limit: i64): Parsed:
                 ret result
             end
             value = value * 10 + (digit as i64)
-            if dot: fractional += 1 else: whole += 1 end
+            if dot: fractional += 1 else:
+                whole += 1
+            end
             if fractional > places:
                 result.error = "too many decimal places"
                 ret result
