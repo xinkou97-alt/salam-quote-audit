@@ -1,0 +1,19 @@
+package main
+
+include money "../src/money.salam"
+
+func main:
+    if money.ParsePrice("0.29").value != 29: ret 1 end
+    if money.ParsePrice("12.3").value != 1230: ret 2 end
+    if money.ParsePrice("-1").ok: ret 3 end
+    if money.ParsePrice("1.001").ok: ret 4 end
+    if money.ParsePrice("1000000.01").ok: ret 5 end
+    if money.ParsePrice("1.").ok: ret 6 end
+    if money.ParsePrice(".5").ok: ret 7 end
+    if money.ParsePrice("1e2").ok: ret 8 end
+    if money.Format(-105) != "-1.05": ret 9 end
+    if money.Format(29) != "0.29": ret 10 end
+    if money.ParseTotal("1000000000000.00").value != 100000000000000: ret 11 end
+    println "money: 11 checks passed"
+    ret 0
+end

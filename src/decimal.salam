@@ -1,0 +1,61 @@
+package decimal
+
+pub struct Parsed:
+    pub ok: bool = false
+    pub value: i64 = 0
+    pub error: str = ""
+end
+
+pub func Parse(raw: str, places: int, limit: i64): Parsed:
+    s := raw.trim()
+    mut result := Parsed {}
+    if s.len() == 0:
+        result.error = "empty decimal"
+        ret result
+    end
+    mut value := 0 as i64
+    mut fractional := 0
+    mut dot := false
+    mut whole := 0
+    repeat s.len() in i:
+        ch := s.substr(i, 1)
+        if ch == ".":
+            if dot or whole == 0:
+                result.error = "invalid decimal point"
+                ret result
+            end
+            dot = true
+        else:
+            digit := "0123456789".find(ch)
+            if digit < 0:
+                result.error = "only unsigned decimal digits are allowed"
+                ret result
+            end
+            if value > (limit - (digit as i64)) / 10:
+                result.error = "decimal exceeds limit"
+                ret result
+            end
+            value = value * 10 + (digit as i64)
+            if dot: fractional += 1 else: whole += 1 end
+            if fractional > places:
+                result.error = "too many decimal places"
+                ret result
+            end
+        end
+    end
+    if dot and fractional == 0:
+        result.error = "fraction is missing"
+        ret result
+    end
+    until fractional < places:
+        if value > limit / 10:
+            result.error = "decimal exceeds limit"
+            ret result
+        end
+        value *= 10
+        fractional += 1
+    end
+    result.ok = true
+    result.value = value
+    ret result
+end

@@ -1,0 +1,26 @@
+package money
+
+import conv
+include decimal "decimal.salam"
+
+pub func ParsePrice(s: str): decimal.Parsed:
+    ret decimal.Parse(s, 2, 100000000)
+end
+
+pub func ParseTotal(s: str): decimal.Parsed:
+    ret decimal.Parse(s, 2, 100000000000000)
+end
+
+pub func Format(cents: i64): str:
+    mut prefix := ""
+    mut value := cents
+    if value < 0:
+        prefix = "-"
+        value = 0 - value
+    end
+    whole := conv.FormatInt(value / 100)
+    fraction := value % 100
+    mut tail := conv.FormatInt(fraction)
+    if fraction < 10: tail = "0".concat(tail) end
+    ret prefix.concat(whole).concat(".").concat(tail)
+end

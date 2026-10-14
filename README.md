@@ -1,5 +1,7 @@
 # Quote Audit
 
-An original offline construction quotation checker built with the [Salam Programming Language](https://github.com/SalamLang/Salam).
+An offline construction quotation checker built with the [Salam Programming Language](https://github.com/SalamLang/Salam).
 
-The project checks quantity times unit price against claimed line totals using exact integer decimal arithmetic. Input is a five-column UTF-8 TSV file: code, description, quantity, unit_price and claimed_total. Development uses OpenAI Codex. Implementation and verified run instructions will be published in the following commits.
+This original, AI-assisted project checks quantity × unit price against the claimed line total. It uses integer decimal arithmetic, reports invalid rows and duplicate item codes, and does not modify input files. It is a calculation aid, not a certified valuation or tax system.
+
+Implementation is in progress. The input contract is tab-separated UTF-8 text with the header `code`, `description`, `quantity`, `unit_price`, `claimed_total`. Quantity has at most three decimal places; money has at most two. Negative values and scientific notation are rejected. Line totals round half up to cents before aggregation.
